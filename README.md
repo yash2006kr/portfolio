@@ -1,96 +1,96 @@
-# 🌟 Premium Portfolio - Yashwanth K R
+# Portfolio - Yashwanth K R
 
-A stunning, modern portfolio website with world-class UI/UX design, featuring subtle background animations and professional aesthetics.
+A modern portfolio website featuring responsive design, interactive elements, and professional aesthetics.
 
-## ✨ Features
+## Features
 
-### 🎨 Design Excellence
-- **Modern Glassmorphism Design** - Beautiful frosted glass effects with backdrop blur
-- **Smooth Animations** - Subtle, non-distracting animations throughout
-- **Particle Background** - Interactive particle system that responds to mouse movement
-- **Dark/Light Theme Toggle** - Seamless theme switching with persistent storage
-- **Responsive Design** - Perfect on all devices from mobile to desktop
+### Design
+- Modern glassmorphism design with backdrop blur effects
+- Smooth, subtle animations
+- Interactive particle background system
+- Dark and light theme toggle with persistent storage
+- Responsive layout optimized for all devices
 
-### 🚀 Interactive Elements
-- **Floating Action Buttons** - Quick access to theme, weather, and stellarium
-- **Smooth Scrolling** - Elegant navigation between sections
-- **Scroll Animations** - AOS (Animate On Scroll) library integration
-- **Active Navigation** - Highlights current section in navigation
-- **Scroll to Top** - Convenient button appears on scroll
-- **Preloader** - Professional loading animation
+### Interactive Elements
+- Floating action buttons for quick access to themes and additional features
+- Smooth scrolling navigation
+- Scroll-based animations using the AOS library
+- Active navigation highlighting
+- Scroll-to-top functionality
+- Preloader animation
 
-### 📱 Sections
-1. **Hero Section** - Eye-catching introduction with code snippet animation
-2. **About Me** - Personal background with animated statistics
-3. **Skills** - Interactive skill cards with progress bars
-4. **Projects** - Showcase of projects with hover effects
-5. **Blog** - Recent blog posts with elegant cards
-6. **Contact** - Multiple contact methods with social links
-7. **Resume Download** - Easy access to resume PDF
+### Sections
+1. Hero Section - Introduction with animated code snippet
+2. About Me - Personal background with statistics
+3. Skills - Interactive skill cards with progress indicators
+4. Projects - Project showcase with hover effects
+5. Blog - Recent blog posts in card format
+6. Contact - Contact information and social links
+7. Resume Download - Direct access to resume PDF
 
-### 🎯 Technical Highlights
-- **Pure CSS Animations** - No heavy animation libraries
-- **Canvas-based Particles** - Lightweight, performant background animation
-- **CSS Variables** - Easy theme customization
-- **Modern JavaScript** - ES6+ features and clean code
-- **Accessibility** - ARIA labels and keyboard navigation support
-- **Performance Optimized** - Debounced scroll events and lazy loading ready
+### Technical Highlights
+- Pure CSS animations without heavy libraries
+- Canvas-based particle system for performance
+- CSS variables for easy customization
+- Modern JavaScript (ES6+) with clean code
+- Accessibility features including ARIA labels and keyboard navigation
+- Performance optimizations such as debounced scroll events
 
-## 🛠️ Technologies Used
+## Technologies Used
 
-- **HTML5** - Semantic markup
-- **CSS3** - Modern CSS with variables, gradients, and animations
-- **JavaScript (ES6+)** - Interactive functionality
-- **AOS Library** - Scroll animations
-- **Font Awesome** - Icons
-- **Google Fonts** - Inter and JetBrains Mono
+- HTML5 - Semantic markup
+- CSS3 - Modern CSS with variables, gradients, and animations
+- JavaScript (ES6+) - Interactive functionality
+- AOS Library - Scroll animations
+- Font Awesome - Icons
+- Google Fonts - Inter and JetBrains Mono
 
-## 🚀 Getting Started
+## Getting Started
 
-1. Open `index.html` in a modern web browser
-2. The portfolio will load with all animations and interactions
-3. Navigate through sections using the navigation menu
-4. Toggle between dark and light themes using the theme button
-5. Explore the interactive particle background by moving your mouse
+1. Open `index.html` in a modern web browser.
+2. The portfolio will load with all animations and interactions.
+3. Use the navigation menu to browse sections.
+4. Toggle themes using the theme button.
+5. Interact with the particle background by moving the mouse.
 
-## 📁 File Structure
+## File Structure
 
 ```
-portfolio-premium/
+portfolio/
 ├── index.html      # Main HTML file
-├── styles.css      # All styles and animations
+├── styles.css      # Styles and animations
 ├── script.js       # JavaScript functionality
 └── README.md       # This file
 ```
 
-## 🎨 Customization
+## Customization
 
 ### Colors
-Edit CSS variables in `styles.css`:
+Modify CSS variables in `styles.css`:
 ```css
 :root {
   --accent-primary: #64ffda;
   --accent-secondary: #00d9ff;
-  /* ... more variables */
+  /* ... additional variables */
 }
 ```
 
 ### Particle Count
 Adjust in `script.js`:
 ```javascript
-this.particleCount = 40; // Change this number
+this.particleCount = 40; // Modify this value
 ```
 
 ### Animation Speed
-Modify AOS settings in `script.js`:
+Update AOS settings in `script.js`:
 ```javascript
 AOS.init({
-  duration: 1000, // Animation duration in ms
-  // ... more options
+  duration: 1000, // Animation duration in milliseconds
+  // ... additional options
 });
 ```
 
-## 🌐 Browser Support
+## Browser Support
 
 - Chrome (latest)
 - Firefox (latest)
@@ -98,26 +98,22 @@ AOS.init({
 - Edge (latest)
 - Mobile browsers (iOS Safari, Chrome Mobile)
 
-## 📝 Notes
+## Notes
 
-- All blog links point to the original `yashwanthkr` folder
-- Resume PDF is linked from the original folder
-- Favicon is linked from the original folder
-- The portfolio is designed to work alongside the original folder structure
+- Blog links reference the original `yashwanthkr` folder.
+- Resume PDF is linked from the original folder.
+- Favicon is sourced from the original folder.
+- The portfolio is designed to integrate with the existing folder structure.
 
-## 🎉 Credits
+## Credits
 
-- **Design Inspiration** - Modern portfolio design trends
-- **Particle System** - Custom implementation
-- **Animations** - AOS library and custom CSS
-- **Icons** - Font Awesome
-- **Fonts** - Google Fonts (Inter & JetBrains Mono)
+- Design Inspiration - Modern portfolio design trends
+- Particle System - Custom implementation
+- Animations - AOS library and custom CSS
+- Icons - Font Awesome
+- Fonts - Google Fonts (Inter & JetBrains Mono)
 
-## 📄 License
+## License
 
 This portfolio is created for Yashwanth K R. All rights reserved.
-
----
-
-**Built with ❤️ and attention to every detail**
 

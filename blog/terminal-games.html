@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminal Games Collection | Space Portfolio</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --space-black: #000000;
+      --space-dark: #0a0a0f;
+      --space-deep: #0f0f1a;
+      --space-purple: #6c5ce7;
+      --space-blue: #00d4ff;
+      --space-cyan: #00f5ff;
+      --space-pink: #ff6b9d;
+      --space-white: #ffffff;
+      --space-gray: #8892b0;
+      --space-light: #b4bcd0;
+    }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--space-black);
+      color: var(--space-white);
+      line-height: 1.6;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Space Background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(ellipse at 20% 50%, rgba(108, 92, 231, 0.2) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 40% 20%, rgba(255, 107, 157, 0.1) 0%, transparent 50%),
+        linear-gradient(180deg, #000000 0%, #0a0a0f 100%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Floating Stars */
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: var(--space-white);
+      border-radius: 50%;
+      box-shadow: 0 0 4px var(--space-cyan);
+      animation: twinkle 3s ease-in-out infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 0;
+      margin-bottom: 3rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--space-cyan);
+      text-decoration: none;
+      font-family: 'Orbitron', monospace;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+      padding: 0.75rem 1.5rem;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 50px;
+      background: rgba(0, 212, 255, 0.05);
+    }
+
+    .back-link:hover {
+      background: rgba(0, 212, 255, 0.1);
+      border-color: var(--space-cyan);
+      transform: translateX(-5px);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+
+    h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--space-white) 0%, var(--space-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--space-gray);
+      font-size: 1.2rem;
+      margin-bottom: 3rem;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .game-card {
+      background: rgba(0, 212, 255, 0.05);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 20px;
+      padding: 2.5rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .game-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .game-card:hover {
+      transform: translateY(-10px);
+      border-color: var(--space-cyan);
+      box-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+    }
+
+    .game-card:hover::before {
+      opacity: 1;
+    }
+
+    .game-number {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem;
+      color: var(--space-cyan);
+      opacity: 0.6;
+      margin-bottom: 1rem;
+      letter-spacing: 2px;
+    }
+
+    .game-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--space-white);
+    }
+
+    .game-description {
+      color: var(--space-gray);
+      margin-bottom: 2rem;
+      line-height: 1.8;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, var(--space-cyan) 0%, var(--space-blue) 100%);
+      color: var(--space-black);
+      text-decoration: none;
+      border-radius: 50px;
+      font-family: 'Orbitron', monospace;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+    }
+
+    .download-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 50px rgba(0, 212, 255, 0.6);
+    }
+
+    .download-btn i {
+      font-size: 1.2rem;
+    }
+
+    .game-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .games-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 1rem;
+      }
+
+      header {
+        padding: 2rem 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating Stars -->
+  <div class="stars" id="stars"></div>
+
+  <div class="container">
+    <header>
+      <a href="../index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Portfolio</span>
+      </a>
+      <h1>🎮 Terminal Games Collection</h1>
+      <p class="subtitle">Download and play Python games in your terminal</p>
+    </header>
+
+    <main>
+      <div class="games-grid">
+        <div class="game-card">
+          <span class="game-number">01</span>
+          <span class="game-icon">🎯</span>
+          <h2 class="game-title">Number Guessing</h2>
+          <p class="game-description">A fun little guessing game where you try to find the hidden number.</p>
+          <a href="games/guessno.py" download class="download-btn">
+            <i class="fas fa-download"></i>
+            <span>Download Number Guessing</span>
+          </a>
+        </div>
+
+        <div class="game-card">
+          <span class="game-number">02</span>
+          <span class="game-icon">⭕</span>
+          <h2 class="game-title">Tic Tac Toe</h2>
+          <p class="game-description">Play Tic Tac Toe against a friend or challenge yourself against the computer.</p>
+          <a href="games/tictactoe.py" download class="download-btn">
+            <i class="fas fa-download"></i>
+            <span>Download Tic Tac Toe</span>
+          </a>
+        </div>
+
+        <div class="game-card">
+          <span class="game-number">03</span>
+          <span class="game-icon">🏏</span>
+          <h2 class="game-title">Hand Cricket</h2>
+          <p class="game-description">Relive school-time fun with the OG hand cricket on terminal.</p>
+          <a href="games/handcricket.py" download class="download-btn">
+            <i class="fas fa-download"></i>
+            <span>Download Hand Cricket</span>
+          </a>
+        </div>
+
+        <div class="game-card">
+          <span class="game-number">04</span>
+          <span class="game-icon">🏦</span>
+          <h2 class="game-title">ATM Management System</h2>
+          <p class="game-description">My class 12 investigatory project 😄, did it on last day of submission. (NOT A GAME)</p>
+          <a href="games/atm_management_system.py" download class="download-btn">
+            <i class="fas fa-download"></i>
+            <span>Download ATM Management System</span>
+          </a>
+        </div>
+
+        <div class="game-card">
+          <span class="game-number">05</span>
+          <span class="game-icon">💕</span>
+          <h2 class="game-title">FLAMES</h2>
+          <p class="game-description">Time to find what the pairs are.</p>
+          <a href="games/flames.py" download class="download-btn">
+            <i class="fas fa-download"></i>
+            <span>Download FLAMES</span>
+          </a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Create floating stars
+    function createStars() {
+      const starsContainer = document.getElementById('stars');
+      const starCount = 100;
+      
+      for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 3 + 's';
+        star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        starsContainer.appendChild(star);
+      }
+    }
+
+    createStars();
+  </script>
+</body>
+</html>
+

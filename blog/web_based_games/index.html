@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Arena</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e293b 0%, #581c87 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .bg-elements {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(64px);
+            opacity: 0.2;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .bg-circle:nth-child(1) {
+            top: 80px;
+            left: 40px;
+            width: 288px;
+            height: 288px;
+            background: #a855f7;
+        }
+
+        .bg-circle:nth-child(2) {
+            top: 160px;
+            right: 40px;
+            width: 288px;
+            height: 288px;
+            background: #06b6d4;
+            animation-delay: 2s;
+        }
+
+        .bg-circle:nth-child(3) {
+            bottom: -128px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 288px;
+            height: 288px;
+            background: #ec4899;
+            animation-delay: 4s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .logo {
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(168, 85, 247, 0.5);
+        }
+
+        .logo-icon svg {
+            width: 40px;
+            height: 40px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 3.75rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 16px;
+            letter-spacing: -0.025em;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #c084fc 0%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #d1d5db;
+            max-width: 512px;
+            margin: 0 auto;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .game-card {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.5s ease-out;
+        }
+
+        .game-card:hover {
+            transform: scale(1.05);
+        }
+
+        .card-content {
+            height: 256px;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .game-card:hover .card-bg {
+            opacity: 1;
+        }
+
+        .glass-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .shine-effect {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.7s;
+        }
+
+        .game-card:hover .shine-effect {
+            transform: translateX(100%);
+        }
+
+        .card-inner {
+            position: relative;
+            height: 100%;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .game-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .game-card:hover .game-icon {
+            transform: scale(1.1) rotate(12deg);
+        }
+
+        .game-icon svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+
+        .play-badge {
+            padding: 6px 12px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            transition: transform 0.3s;
+        }
+
+        .game-card:hover .play-badge {
+            transform: scale(1.1);
+        }
+
+        .card-body {
+            margin-top: auto;
+        }
+
+        .game-title {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .game-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+        }
+
+        .border-glow {
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.25);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .game-card:hover .border-glow {
+            opacity: 1;
+        }
+
+        .particles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: none;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: white;
+            animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        .particle:nth-child(1) {
+            top: 16px;
+            right: 16px;
+            width: 8px;
+            height: 8px;
+        }
+
+        .particle:nth-child(2) {
+            bottom: 32px;
+            left: 32px;
+            width: 4px;
+            height: 4px;
+            animation-delay: 0.5s;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 64px;
+        }
+
+        .footer-text {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .card-inner {
+                padding: 24px;
+            }
+
+            .game-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-elements">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                </div>
+            </div>
+            <h1>Game <span class="gradient-text">Arena</span></h1>
+            <p class="subtitle">Choose your adventure and dive into immersive gameplay experiences</p>
+        </header>
+
+        <div class="games-grid">
+            <div class="game-card" onclick="window.location.href='./snake.html'">
+                <div class="card-content">
+                    <div class="card-bg" style="background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);"></div>
+                    <div class="glass-overlay"></div>
+                    <div class="shine-effect"></div>
+                    <div class="border-glow"></div>
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <div class="game-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <circle cx="12" cy="12" r="6"></circle>
+                                    <circle cx="12" cy="12" r="2"></circle>
+                                </svg>
+                            </div>
+                            <div class="play-badge">PLAY</div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="game-title">Snake Game</h3>
+                            <p class="game-description">Classic arcade action</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="window.location.href='./xox.html'">
+                <div class="card-content">
+                    <div class="card-bg" style="background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);"></div>
+                    <div class="glass-overlay"></div>
+                    <div class="shine-effect"></div>
+                    <div class="border-glow"></div>
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <div class="game-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                </svg>
+                            </div>
+                            <div class="play-badge">PLAY</div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="game-title">Tic Tac Toe</h3>
+                            <p class="game-description">Strategic mind game</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="window.location.href='./memory/index.html'">
+                <div class="card-content">
+                    <div class="card-bg" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);"></div>
+                    <div class="glass-overlay"></div>
+                    <div class="shine-effect"></div>
+                    <div class="border-glow"></div>
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <div class="game-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <path d="M12 17h.01"></path>
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                </svg>
+                            </div>
+                            <div class="play-badge">PLAY</div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="game-title">Memory Game</h3>
+                            <p class="game-description">Test your memory</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="window.location.href='./pong/index.html'">
+                <div class="card-content">
+                    <div class="card-bg" style="background: linear-gradient(135deg, #f97316 0%, #dc2626 100%);"></div>
+                    <div class="glass-overlay"></div>
+                    <div class="shine-effect"></div>
+                    <div class="border-glow"></div>
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <div class="game-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                                    <polyline points="7,7 17,7 17,17 7,17 7,7"></polyline>
+                                </svg>
+                            </div>
+                            <div class="play-badge">PLAY</div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="game-title">Pong</h3>
+                            <p class="game-description">Retro ping pong</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="window.location.href='./tetris/index.html'">
+                <div class="card-content">
+                    <div class="card-bg" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);"></div>
+                    <div class="glass-overlay"></div>
+                    <div class="shine-effect"></div>
+                    <div class="border-glow"></div>
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <div class="game-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <rect x="7" y="7" width="3" height="3"></rect>
+                                    <rect x="14" y="7" width="3" height="3"></rect>
+                                    <rect x="7" y="14" width="3" height="3"></rect>
+                                    <rect x="14" y="14" width="3" height="3"></rect>
+                                </svg>
+                            </div>
+                            <div class="play-badge">PLAY</div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="game-title">Tetris</h3>
+                            <p class="game-description">Block stacking puzzle</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="window.location.href='./spaceinvaders/index.html'">
+                <div class="card-content">
+                    <div class="card-bg" style="background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);"></div>
+                    <div class="glass-overlay"></div>
+                    <div class="shine-effect"></div>
+                    <div class="border-glow"></div>
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <div class="game-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                                </svg>
+                            </div>
+                            <div class="play-badge">PLAY</div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="game-title">Space Invaders</h3>
+                            <p class="game-description">Defend the galaxy</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p class="footer-text">Built with passion for gaming enthusiasts</p>
+        </footer>
+    </div>
+
+    <script>
+        // Add hover effects for particles
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const particles = this.querySelector('.particles');
+                if (particles) {
+                    particles.style.display = 'block';
+                }
+            });
+
+            card.addEventListener('mouseleave', function() {
+                const particles = this.querySelector('.particles');
+                if (particles) {
+                    particles.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

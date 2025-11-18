@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pacman Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    #instructions {
+        background: rgba(0,0,0,0.8);
+        border: 2px solid yellow;
+        color: white;
+        padding: 15px;
+        margin: 10px auto;
+        width: 80%;
+        max-width: 600px;
+        border-radius: 8px;
+        text-align: left;
+        font-size: 14px;
+        }
+        #instructions h2 {
+        text-align: center;
+        color: yellow;
+        margin-bottom: 10px;
+        }
+        #instructions ul {
+        list-style: none;
+        padding-left: 0;
+        }
+        #instructions li {
+        margin: 5px 0;
+        }
+    #start-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      color: yellow;
+      font-family: "Courier New", monospace;
+      text-align: center;
+    }
+
+    #start-screen h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px red, 0 0 20px orange;
+    }
+
+    #start-screen p {
+      font-size: 1.5rem;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    #gameCanvas {
+      display: none; /* Hide canvas until game starts */
+    }
+
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #000;
+      border: 2px solid yellow;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: yellow;
+      color: black;
+      font-weight: bold;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: orange;
+    }
+    #hud {
+      font-size: 18px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>👾 Pacman</h1>
+  <div id="hud">Score: 0 | Lives: 3 | Level: 1</div>
+  <div id="instructions">
+  <h2>🕹️ How to Play</h2>
+  <ul>
+    <li>➡️ Use <b>Arrow Keys</b> to move Pac-Man</li>
+    <li>⚪ Eat <b>small pellets</b> for 10 points</li>
+    <li>🟠 Eat <b>power pellets</b> to turn ghosts blue</li>
+    <li>👻 Eat <b>ghosts</b> while they are blue for 200 points</li>
+    <li>🍒 Collect <b>fruits</b> for bonus points</li>
+    <li>💔 You have <b>3 lives</b> – avoid ghosts when not powered up</li>
+    <li>🚀 Clear all pellets to advance to the next level</li>
+  </ul>
+  </div>
+  <div id="start-screen">
+    <h1>👾 Pac-Man</h1>
+    <p>Press <b>SPACE</b> to Start</p>
+  </div>
+  <canvas id="gameCanvas" width="448" height="496"></canvas>
+  <br>
+  <a href="/index.html" class="btn">⬅ Back to Blog</a>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const tileSize = 16;
+    const rows = 31;
+    const cols = 28;
+    let score = 0;
+    let lives = 3;
+    let level = 1;
+    let gameSpeed = 150;
+    let powerMode = false;
+    let powerTimer = 0;
+
+    let fruits = [];
+    let map;
+
+    function generateMap() {
+      let newMap = [];
+      for (let r = 0; r < rows; r++) {
+        newMap[r] = [];
+        for (let c = 0; c < cols; c++) {
+          if (r === 0 || c === 0 || r === rows-1 || c === cols-1) {
+            newMap[r][c] = 1; // wall
+          } else {
+            let rand = Math.random();
+            if (rand < 0.05) newMap[r][c] = 3; // power pellet
+            else newMap[r][c] = 2; // normal pellet
+          }
+        }
+      }
+      return newMap;
+    }
+    map = generateMap();
+
+    let pacman = { x: 14, y: 23, dirX: 0, dirY: 0 };
+
+    let ghosts = [
+      { x: 13, y: 11, color: "red", alive: true },
+      { x: 14, y: 11, color: "cyan", alive: true },
+      { x: 15, y: 11, color: "pink", alive: true }
+    ];
+
+    const fruitTypes = [
+      { emoji: "🍒", points: 100 },
+      { emoji: "🍓", points: 300 },
+      { emoji: "🍊", points: 500 },
+      { emoji: "🍎", points: 700 }
+    ];
+
+    function spawnFruit() {
+      let f = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
+      fruits.push({
+        x: Math.floor(Math.random() * cols),
+        y: Math.floor(Math.random() * rows),
+        emoji: f.emoji,
+        points: f.points,
+        timer: 500
+      });
+    }
+
+    function drawMap() {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (map[r][c] === 1) {
+            ctx.fillStyle = "blue";
+            ctx.fillRect(c*tileSize, r*tileSize, tileSize, tileSize);
+          } else if (map[r][c] === 2) {
+            ctx.fillStyle = "white";
+            ctx.beginPath();
+            ctx.arc(c*tileSize+tileSize/2, r*tileSize+tileSize/2, 2, 0, Math.PI*2);
+            ctx.fill();
+          } else if (map[r][c] === 3) {
+            ctx.fillStyle = "orange";
+            ctx.beginPath();
+            ctx.arc(c*tileSize+tileSize/2, r*tileSize+tileSize/2, 5, 0, Math.PI*2);
+            ctx.fill();
+          }
+        }
+      }
+    }
+
+    function drawPacman() {
+      ctx.fillStyle = "yellow";
+      ctx.beginPath();
+      ctx.arc(
+        pacman.x*tileSize+tileSize/2,
+        pacman.y*tileSize+tileSize/2,
+        tileSize/2,
+        0.25*Math.PI,
+        1.75*Math.PI
+      );
+      ctx.lineTo(pacman.x*tileSize+tileSize/2, pacman.y*tileSize+tileSize/2);
+      ctx.fill();
+    }
+
+    function drawGhosts() {
+      ghosts.forEach(g => {
+        if (g.alive) {
+          ctx.fillStyle = powerMode ? "blue" : g.color;
+          ctx.beginPath();
+          ctx.arc(
+            g.x*tileSize+tileSize/2,
+            g.y*tileSize+tileSize/2,
+            tileSize/2,
+            0,
+            Math.PI*2
+          );
+          ctx.fill();
+        }
+      });
+    }
+
+    function drawFruits() {
+      fruits.forEach(f => {
+        ctx.font = "16px Arial";
+        ctx.fillText(f.emoji, f.x*tileSize, f.y*tileSize+tileSize);
+      });
+    }
+
+    function updatePacman() {
+      if (map[pacman.y + pacman.dirY][pacman.x + pacman.dirX] !== 1) {
+        pacman.x += pacman.dirX;
+        pacman.y += pacman.dirY;
+      }
+      if (map[pacman.y][pacman.x] === 2) {
+        map[pacman.y][pacman.x] = 0;
+        score += 10;
+        updateHUD();
+        checkLevelComplete();
+      } else if (map[pacman.y][pacman.x] === 3) {
+        map[pacman.y][pacman.x] = 0;
+        score += 50;
+        powerMode = true;
+        powerTimer = 300;
+        updateHUD();
+      }
+      fruits.forEach((f, i) => {
+        if (f.x === pacman.x && f.y === pacman.y) {
+          score += f.points;
+          fruits.splice(i, 1);
+          updateHUD();
+        }
+      });
+    }
+
+    function moveGhosts() {
+      ghosts.forEach(g => {
+        if (!g.alive) return;
+        let dir = Math.floor(Math.random()*4);
+        let dx = 0, dy = 0;
+        if (dir === 0) dx = 1;
+        if (dir === 1) dx = -1;
+        if (dir === 2) dy = 1;
+        if (dir === 3) dy = -1;
+        if (map[g.y+dy][g.x+dx] !== 1) {
+          g.x += dx;
+          g.y += dy;
+        }
+        if (g.x === pacman.x && g.y === pacman.y) {
+          if (powerMode) {
+            g.alive = false;
+            score += 200;
+            updateHUD();
+          } else {
+            lives--;
+            resetPositions();
+            updateHUD();
+          }
+        }
+      });
+    }
+
+    function resetPositions() {
+      pacman.x = 14; pacman.y = 23; pacman.dirX = 0; pacman.dirY = 0;
+      ghosts.forEach(g => { g.x = 14; g.y = 11; g.alive = true; });
+      if (lives <= 0) {
+        alert("Game Over! Final Score: " + score);
+        document.location.reload();
+      }
+    }
+
+    function checkLevelComplete() {
+      let pelletsLeft = map.flat().filter(x => x === 2 || x === 3).length;
+      if (pelletsLeft === 0) {
+        level++;
+        gameSpeed = Math.max(80, gameSpeed - 20);
+        map = generateMap();
+        resetPositions();
+        alert("Level " + level + "!");
+        updateHUD();
+        clearInterval(loop);
+        loop = setInterval(gameLoop, gameSpeed);
+      }
+    }
+
+    function updateHUD() {
+      document.getElementById("hud").innerText = `Score: ${score} | Lives: ${lives} | Level: ${level}`;
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawMap();
+      updatePacman();
+      drawPacman();
+      moveGhosts();
+      drawGhosts();
+      drawFruits();
+
+      if (powerMode) {
+        powerTimer--;
+        if (powerTimer <= 0) powerMode = false;
+      }
+
+      fruits.forEach((f, i) => {
+        f.timer--;
+        if (f.timer <= 0) fruits.splice(i, 1);
+      });
+
+      if (Math.random() < 0.002) spawnFruit();
+    }
+
+    let gameStarted = false;
+    document.addEventListener("keydown", function(e) {
+      if (!gameStarted && e.code === "Space") {
+        document.getElementById("start-screen").style.display = "none";
+        canvas.style.display = "block";
+        gameStarted = true;
+        loop = setInterval(gameLoop, gameSpeed);
+      }
+      if (gameStarted) {
+        if (e.key === "ArrowUp") { pacman.dirX = 0; pacman.dirY = -1; }
+        if (e.key === "ArrowDown") { pacman.dirX = 0; pacman.dirY = 1; }
+        if (e.key === "ArrowLeft") { pacman.dirX = -1; pacman.dirY = 0; }
+        if (e.key === "ArrowRight") { pacman.dirX = 1; pacman.dirY = 0; }
+      }
+    });
+
+    updateHUD();
+  </script>
+</body>
+</html>

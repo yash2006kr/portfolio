@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Maze Game</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      border: 4px solid #fff;
+      margin-top: 10px;
+    }
+
+    h1 {
+      color: #00ffcc;
+    }
+
+    #status {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧩 Maze Game</h1>
+  <canvas id="mazeCanvas" width="500" height="500"></canvas>
+
+  <div id="status">Use arrow keys to move</div>
+
+  <div style="margin-top: 15px;">
+    <button onclick="generateNewMaze()">🔁 New Maze</button>
+    <button onclick="window.location.href='/index.html'">🏠 Back to Home</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("mazeCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const cols = 10;
+    const rows = 10;
+    const cellSize = canvas.width / cols;
+
+    let grid = [];
+    let current;
+    let stack = [];
+
+    class Cell {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.walls = [true, true, true, true]; // top, right, bottom, left
+        this.visited = false;
+      }
+
+      draw() {
+        const x = this.x * cellSize;
+        const y = this.y * cellSize;
+
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+
+        if (this.walls[0]) drawLine(x, y, x + cellSize, y);             // top
+        if (this.walls[1]) drawLine(x + cellSize, y, x + cellSize, y + cellSize); // right
+        if (this.walls[2]) drawLine(x + cellSize, y + cellSize, x, y + cellSize); // bottom
+        if (this.walls[3]) drawLine(x, y + cellSize, x, y);             // left
+
+        if (this.visited) {
+          ctx.fillStyle = "#1e1e1e";
+          ctx.fillRect(x, y, cellSize, cellSize);
+        }
+      }
+
+      checkNeighbors() {
+        const neighbors = [];
+
+        const top    = grid[index(this.x, this.y - 1)];
+        const right  = grid[index(this.x + 1, this.y)];
+        const bottom = grid[index(this.x, this.y + 1)];
+        const left   = grid[index(this.x - 1, this.y)];
+
+        if (top && !top.visited) neighbors.push(top);
+        if (right && !right.visited) neighbors.push(right);
+        if (bottom && !bottom.visited) neighbors.push(bottom);
+        if (left && !left.visited) neighbors.push(left);
+
+        if (neighbors.length > 0) {
+          const r = Math.floor(Math.random() * neighbors.length);
+          return neighbors[r];
+        } else {
+          return undefined;
+        }
+      }
+    }
+
+    function index(x, y) {
+      if (x < 0 || y < 0 || x >= cols || y >= rows) return -1;
+      return x + y * cols;
+    }
+
+    function drawLine(x1, y1, x2, y2) {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    function removeWalls(a, b) {
+      let x = a.x - b.x;
+      if (x === 1) {
+        a.walls[3] = false;
+        b.walls[1] = false;
+      } else if (x === -1) {
+        a.walls[1] = false;
+        b.walls[3] = false;
+      }
+
+      let y = a.y - b.y;
+      if (y === 1) {
+        a.walls[0] = false;
+        b.walls[2] = false;
+      } else if (y === -1) {
+        a.walls[2] = false;
+        b.walls[0] = false;
+      }
+    }
+
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        grid.push(new Cell(x, y));
+      }
+    }
+
+    current = grid[0];
+
+    function generateMaze() {
+      current.visited = true;
+      const next = current.checkNeighbors();
+
+      if (next) {
+        next.visited = true;
+        stack.push(current);
+        removeWalls(current, next);
+        current = next;
+        requestAnimationFrame(generateMaze);
+      } else if (stack.length > 0) {
+        current = stack.pop();
+        requestAnimationFrame(generateMaze);
+      } else {
+        drawMaze();
+      }
+    }
+
+    function drawMaze() {
+      for (let i = 0; i < grid.length; i++) {
+        grid[i].draw();
+      }
+
+      // Draw Start
+      drawHighlight(start.x, start.y, "#00ff00");
+
+      // Draw End
+      drawHighlight(end.x, end.y, "#ff4444");
+
+      // Draw Player
+      drawHighlight(player.x, player.y, "#00bfff");
+    }
+
+    function drawHighlight(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * cellSize + 4, y * cellSize + 4, cellSize - 8, cellSize - 8);
+    }
+
+    // Start and End
+    const start = { x: 0, y: 0 };
+    const end = { x: cols - 1, y: rows - 1 };
+    let player = { ...start };
+
+    // Wrap everything in a function to regenerate maze
+    function generateNewMaze() {
+      // Reset
+      grid = [];
+      stack = [];
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          grid.push(new Cell(x, y));
+        }
+      }
+      current = grid[0];
+      player = { ...start };
+      document.getElementById("status").textContent = "Use arrow keys to move";
+      generateMaze();
+    }
+
+    // Movement
+    document.addEventListener("keydown", (e) => {
+      const currentCell = grid[index(player.x, player.y)];
+      if (e.key === "ArrowUp" && !currentCell.walls[0]) player.y--;
+      else if (e.key === "ArrowRight" && !currentCell.walls[1]) player.x++;
+      else if (e.key === "ArrowDown" && !currentCell.walls[2]) player.y++;
+      else if (e.key === "ArrowLeft" && !currentCell.walls[3]) player.x--;
+
+      drawMaze();
+
+      if (player.x === end.x && player.y === end.y) {
+        document.getElementById("status").textContent = "🎉 You reached the end!";
+      }
+    });
+
+    generateMaze();
+  </script>
+</body>
+</html>

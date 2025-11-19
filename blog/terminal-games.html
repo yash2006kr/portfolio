@@ -214,14 +214,37 @@
       font-family: 'Orbitron', monospace;
       font-weight: 600;
       font-size: 1rem;
-      transition: all 0.3s ease;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
       border: 2px solid transparent;
       box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .download-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 180%;
+      height: 180%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, transparent 60%);
+      transform: translate(-50%, -50%) scale(0.5);
+      opacity: 0;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      pointer-events: none;
     }
 
     .download-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 0 50px rgba(0, 212, 255, 0.6);
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 0 60px rgba(0, 245, 255, 0.9);
+      background: linear-gradient(135deg, var(--space-pink) 0%, var(--space-cyan) 100%);
+      border-color: rgba(0, 245, 255, 0.9);
+    }
+
+    .download-btn:hover::before {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
     }
 
     .download-btn i {
@@ -255,7 +278,7 @@
 
   <div class="container">
     <header>
-      <a href="/index.html" class="back-link">
+      <a href="../index.html" class="back-link">
         <i class="fas fa-arrow-left"></i>
         <span>Back to Portfolio</span>
       </a>
@@ -270,7 +293,7 @@
           <span class="game-icon">🎯</span>
           <h2 class="game-title">Number Guessing</h2>
           <p class="game-description">A fun little guessing game where you try to find the hidden number.</p>
-          <a href="games/guessno.py" download class="download-btn">
+          <a href="./games/guessno.py" download="guessno.py" class="download-btn">
             <i class="fas fa-download"></i>
             <span>Download Number Guessing</span>
           </a>
@@ -281,7 +304,7 @@
           <span class="game-icon">⭕</span>
           <h2 class="game-title">Tic Tac Toe</h2>
           <p class="game-description">Play Tic Tac Toe against a friend or challenge yourself against the computer.</p>
-          <a href="games/tictactoe.py" download class="download-btn">
+          <a href="./games/tictactoe.py" download="tictactoe.py" class="download-btn">
             <i class="fas fa-download"></i>
             <span>Download Tic Tac Toe</span>
           </a>
@@ -292,7 +315,7 @@
           <span class="game-icon">🏏</span>
           <h2 class="game-title">Hand Cricket</h2>
           <p class="game-description">Relive school-time fun with the OG hand cricket on terminal.</p>
-          <a href="games/handcricket.py" download class="download-btn">
+          <a href="./games/handcricket.py" download="handcricket.py" class="download-btn">
             <i class="fas fa-download"></i>
             <span>Download Hand Cricket</span>
           </a>
@@ -303,7 +326,7 @@
           <span class="game-icon">🏦</span>
           <h2 class="game-title">ATM Management System</h2>
           <p class="game-description">My class 12 investigatory project 😄, did it on last day of submission. (NOT A GAME)</p>
-          <a href="games/atm_management_system.py" download class="download-btn">
+          <a href="./games/atm_management_system.py" download="atm_management_system.py" class="download-btn">
             <i class="fas fa-download"></i>
             <span>Download ATM Management System</span>
           </a>
@@ -314,7 +337,7 @@
           <span class="game-icon">💕</span>
           <h2 class="game-title">FLAMES</h2>
           <p class="game-description">Time to find what the pairs are.</p>
-          <a href="games/flames.py" download class="download-btn">
+          <a href="./games/flames.py" download="flames.py" class="download-btn">
             <i class="fas fa-download"></i>
             <span>Download FLAMES</span>
           </a>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Solar System - Extended (Kuiper Belt)</title>
+    <title>3D Solar System - Stellarium Style</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', sans-serif; }
         canvas { display: block; }
@@ -51,6 +51,29 @@
             border-radius: 8px;
             backdrop-filter: blur(4px);
         }
+
+        #view-options {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .toggle-btn {
+            background: rgba(0, 0, 0, 0.5);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            backdrop-filter: blur(4px);
+            transition: background 0.2s, color 0.2s;
+        }
+        .toggle-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .toggle-btn.active { background: rgba(79, 172, 254, 0.3); border-color: rgba(79, 172, 254, 0.6); color: white; }
 
         #tooltip {
             position: absolute;
@@ -120,8 +143,8 @@
     <button id="back-btn" onclick="window.location.href='../index.html'">← Back to Portfolio</button>
 
     <div id="info">
-        <h1>SOLAR SYSTEM & KUIPER BELT</h1>
-        <p>Click on any planet, dwarf planet, or the Sun</p>
+        <h1>SOLAR SYSTEM & CONSTELLATIONS</h1>
+        <p>Explore the planets, Kuiper Belt, and the Milky Way</p>
     </div>
     
     <div id="controls-help">
@@ -129,6 +152,11 @@
         Left Click: Rotate / Select<br>
         Right Click: Pan<br>
         Scroll: Zoom<br>
+    </div>
+
+    <div id="view-options">
+        <button class="toggle-btn active" id="btn-constellations" onclick="toggleConstellations()">Constellations</button>
+        <button class="toggle-btn active" id="btn-milkyway" onclick="toggleMilkyWay()">Milky Way</button>
     </div>
     
     <div id="tooltip">Planet</div>
@@ -152,7 +180,8 @@
         // --- Configuration ---
         const config = {
             sunSize: 5,
-            orbitSpeedMultiplier: 0.04, // Keep it slow for usability
+            orbitSpeedMultiplier: 0.04,
+            celestialRadius: 900 // Radius for background stars/constellations
         };
 
         // --- Data ---
@@ -275,6 +304,7 @@
         let planets = []; 
         let isPaused = false;
         let focusedPlanet = null;
+        let milkyWaySphere, constellationGroup;
         
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
@@ -283,10 +313,10 @@
 
         function init() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000000, 0.001); // Slightly darker fog for deep space
+            scene.fog = new THREE.FogExp2(0x000000, 0.0005); 
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 60, 140); // Zoomed out a bit more to see outer ring
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 80, 200);
             camera.lookAt(0, 0, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -300,13 +330,12 @@
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.minDistance = 5;
-            controls.maxDistance = 450;
+            controls.maxDistance = 800;
 
-            const ambientLight = new THREE.AmbientLight(0x111111); // Dimmer ambient for contrast
+            const ambientLight = new THREE.AmbientLight(0x111111);
             scene.add(ambientLight);
 
-            // Intense white light for the white sun
-            const sunLight = new THREE.PointLight(0xFFFFFF, 2.0, 500); // Increased range for outer planets
+            const sunLight = new THREE.PointLight(0xFFFFFF, 2.0, 800);
             sunLight.position.set(0, 0, 0);
             sunLight.castShadow = true;
             sunLight.shadow.mapSize.width = 2048; 
@@ -314,7 +343,8 @@
             sunLight.shadow.bias = -0.0001;
             scene.add(sunLight);
 
-            createStarfield();
+            createMilkyWay();
+            createConstellations(); // New function
             createSun();
             createPlanets();
             createAsteroidBelt();
@@ -327,29 +357,165 @@
             animate();
         }
 
-        function createStarfield() {
-            const geometry = new THREE.BufferGeometry();
-            const count = 10000;
-            const positions = [];
-            const colors = [];
-            
-            for(let i=0; i<count; i++) {
-                const x = (Math.random() - 0.5) * 1500;
-                const y = (Math.random() - 0.5) * 1500;
-                const z = (Math.random() - 0.5) * 1500;
-                positions.push(x, y, z);
+        function createMilkyWay() {
+            // Create a large sphere for the background
+            const geometry = new THREE.SphereGeometry(config.celestialRadius, 64, 64);
+            const texture = generateMilkyWayTexture();
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.BackSide,
+                transparent: true,
+                opacity: 0.8
+            });
+            milkyWaySphere = new THREE.Mesh(geometry, material);
+            scene.add(milkyWaySphere);
+
+            // Add extra bright stars randomly
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 2000;
+            const starPos = [];
+            for(let i=0; i<starCount; i++) {
+                const r = config.celestialRadius * 0.95;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
                 
-                const color = new THREE.Color();
-                color.setHSL(Math.random() * 0.2 + 0.5, 0.1, Math.random() * 0.5 + 0.5);
-                colors.push(color.r, color.g, color.b);
+                const x = r * Math.sin(phi) * Math.cos(theta);
+                const y = r * Math.sin(phi) * Math.sin(theta);
+                const z = r * Math.cos(phi);
+                starPos.push(x,y,z);
             }
+            starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+            const starMat = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 1.5, transparent: true, opacity: 0.8 });
+            const stars = new THREE.Points(starGeo, starMat);
+            milkyWaySphere.add(stars); // Bind to sphere so they rotate together if needed
+        }
+
+        function createConstellations() {
+            const radius = config.celestialRadius * 0.9;
+            const material = new THREE.LineBasicMaterial({ color: 0x4facfe, transparent: true, opacity: 0.4 });
+            const group = new THREE.Group();
+
+            // Simple helper to convert RA (hours) and Dec (degrees) to Cartesian
+            // RA: 0-24h (360 degrees), Dec: -90 to 90
+            function getPos(raHr, decDeg) {
+                const phi = (90 - decDeg) * (Math.PI / 180);
+                const theta = (raHr / 24) * 360 * (Math.PI / 180);
+                
+                const x = radius * Math.sin(phi) * Math.cos(theta);
+                const y = radius * Math.cos(phi); // y is up in Three.js
+                const z = radius * Math.sin(phi) * Math.sin(theta);
+                return new THREE.Vector3(x, y, z);
+            }
+
+            // --- Constellation Data (Simplified Approximate Coordinates) ---
+            const constellations = [
+                {
+                    name: "Ursa Major",
+                    stars: [
+                        getPos(11.06, 61.75), getPos(11.03, 56.38), // Dubhe -> Merak
+                        getPos(11.03, 56.38), getPos(11.89, 53.69), // Merak -> Phecda
+                        getPos(11.89, 53.69), getPos(12.25, 57.03), // Phecda -> Megrez
+                        getPos(12.25, 57.03), getPos(11.06, 61.75), // Megrez -> Dubhe (Bowl closed)
+                        getPos(12.25, 57.03), getPos(12.90, 55.95), // Megrez -> Alioth
+                        getPos(12.90, 55.95), getPos(13.39, 54.92), // Alioth -> Mizar
+                        getPos(13.39, 54.92), getPos(13.79, 49.31)  // Mizar -> Alkaid
+                    ]
+                },
+                {
+                    name: "Orion",
+                    stars: [
+                        getPos(5.91, 7.40), getPos(5.41, 6.34), // Betelgeuse -> Bellatrix
+                        getPos(5.41, 6.34), getPos(5.24, -0.29), // Bellatrix -> Mintaka
+                        getPos(5.24, -0.29), getPos(5.60, -1.20), // Mintaka -> Alnilam
+                        getPos(5.60, -1.20), getPos(5.67, -1.94), // Alnilam -> Alnitak
+                        getPos(5.67, -1.94), getPos(5.91, 7.40), // Alnitak -> Betelgeuse (Upper body)
+                        getPos(5.67, -1.94), getPos(5.79, -9.66), // Alnitak -> Saiph
+                        getPos(5.24, -0.29), getPos(5.24, -8.20), // Mintaka -> Rigel
+                        getPos(5.24, -8.20), getPos(5.79, -9.66)  // Rigel -> Saiph (Lower body)
+                    ]
+                },
+                {
+                    name: "Cassiopeia",
+                    stars: [
+                        getPos(0.15, 59.14), getPos(0.67, 56.53), // Caph -> Schedar
+                        getPos(0.67, 56.53), getPos(0.94, 60.71), // Schedar -> Navi
+                        getPos(0.94, 60.71), getPos(1.42, 60.23), // Navi -> Ruchbah
+                        getPos(1.42, 60.23), getPos(1.90, 63.67)  // Ruchbah -> Segin
+                    ]
+                },
+                {
+                    name: "Cygnus",
+                    stars: [
+                        getPos(20.69, 45.28), getPos(20.37, 40.25), // Deneb -> Sadr
+                        getPos(20.37, 40.25), getPos(19.51, 27.96), // Sadr -> Albireo (Body)
+                        getPos(20.37, 40.25), getPos(21.22, 30.22), // Sadr -> Gienah (Wing)
+                        getPos(20.37, 40.25), getPos(19.49, 45.13)  // Sadr -> Delta Cyg (Wing)
+                    ]
+                },
+                {
+                    name: "Scorpius",
+                    stars: [
+                        getPos(16.48, -26.43), getPos(16.35, -26.21), // Antares -> Sigma
+                        getPos(16.48, -26.43), getPos(16.57, -28.21), // Antares -> Tau
+                        getPos(16.57, -28.21), getPos(16.83, -30.56), // Tau -> Epsilon
+                        getPos(16.83, -30.56), getPos(17.15, -34.29), // Epsilon -> Mu
+                        getPos(17.15, -34.29), getPos(17.35, -37.29), // Mu -> Zeta
+                        getPos(17.35, -37.29), getPos(17.56, -37.29), // Zeta -> Eta
+                        getPos(17.56, -37.29), getPos(17.61, -34.29), // Eta -> Sargas
+                        getPos(17.61, -34.29), getPos(17.78, -39.03), // Sargas -> Iota
+                        getPos(17.78, -39.03), getPos(17.89, -39.03), // Iota -> Kappa
+                        getPos(17.89, -39.03), getPos(17.55, -37.10)  // Kappa -> Shaula (Tail hook)
+                    ]
+                }
+            ];
+
+            const loader = new THREE.FontLoader(); // Just kidding, we'll use canvas sprites for text to save filesize
+
+            constellations.forEach(c => {
+                // 1. Draw Lines
+                const geometry = new THREE.BufferGeometry().setFromPoints(c.stars);
+                const line = new THREE.LineSegments(geometry, material);
+                group.add(line);
+
+                // 2. Add Label
+                // Calculate center
+                const center = new THREE.Vector3();
+                c.stars.forEach(p => center.add(p));
+                center.divideScalar(c.stars.length);
+                
+                const sprite = createTextSprite(c.name);
+                sprite.position.copy(center);
+                group.add(sprite);
+            });
+
+            group.rotation.x = Math.PI / 4; // Tilt slightly to match ecliptic roughly
+            constellationGroup = group;
+            scene.add(group);
+        }
+
+        function createTextSprite(message) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const fontSize = 40;
+            ctx.font = `Bold ${fontSize}px Arial`;
+            const textWidth = ctx.measureText(message).width;
             
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            canvas.width = textWidth + 20;
+            canvas.height = fontSize + 20;
             
-            const material = new THREE.PointsMaterial({ size: 0.6, vertexColors: true, transparent: true, opacity: 0.8 });
-            const stars = new THREE.Points(geometry, material);
-            scene.add(stars);
+            ctx.font = `Bold ${fontSize}px Arial`;
+            ctx.fillStyle = "rgba(79, 172, 254, 1)";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
+            ctx.fillText(message, canvas.width/2, canvas.height/2);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.8 });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(textWidth / 2, (fontSize + 20) / 2, 1);
+            return sprite;
         }
 
         function createSun() {
@@ -489,7 +655,6 @@
                 }
 
                 // --- Orbit Path ---
-                // Fainter orbits for dwarf planets
                 const orbitOpacity = (data.name === 'Pluto' || data.name === 'Eris') ? 0.05 : 0.1;
                 const orbitGeo = new THREE.TorusGeometry(data.distance, 0.05, 16, 128);
                 const orbitMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: orbitOpacity });
@@ -544,9 +709,7 @@
             
             for (let i = 0; i < count; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                // Scatter between 120 and 180 units
                 const radius = 120 + Math.random() * 60; 
-                // More vertical spread than main belt
                 const spread = 8; 
                 
                 const x = Math.cos(angle) * radius;
@@ -554,7 +717,6 @@
                 const z = Math.sin(angle) * radius;
                 positions.push(x, y, z);
                 
-                // Icy blue-grey colors
                 const r = 0.6 + Math.random() * 0.2;
                 const g = 0.7 + Math.random() * 0.3;
                 const b = 0.8 + Math.random() * 0.2;
@@ -563,13 +725,77 @@
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
             geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
             
-            // Fainter and smaller than inner asteroids
             const material = new THREE.PointsMaterial({ size: 0.18, vertexColors: true, transparent: true, opacity: 0.6 });
             kuiperBelt = new THREE.Points(geometry, material);
             scene.add(kuiperBelt);
         }
 
         // --- Realistic Procedural Textures ---
+
+        function generateMilkyWayTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Deep space black background
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0,0,w,h);
+
+            // Create nebulous noise
+            for(let i=0; i<600; i++) {
+                const x = Math.random() * w;
+                const y = Math.random() * h;
+                const radius = Math.random() * 60 + 20;
+                
+                // Calculate distance from center horizontal line (Milky Way plane)
+                const distFromCenter = Math.abs(y - h/2);
+                const opacity = Math.max(0, 0.1 - (distFromCenter / (h/2)) * 0.1);
+                
+                if (opacity > 0) {
+                    const grd = ctx.createRadialGradient(x,y,0, x,y,radius);
+                    
+                    // Varied colors for nebulae
+                    const r = Math.floor(Math.random() * 50 + 20); // Dark blues
+                    const g = Math.floor(Math.random() * 30);
+                    const b = Math.floor(Math.random() * 80 + 40); // Purples
+                    
+                    grd.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${opacity})`);
+                    grd.addColorStop(1, 'rgba(0,0,0,0)');
+                    
+                    ctx.fillStyle = grd;
+                    ctx.beginPath();
+                    ctx.arc(x,y,radius,0,Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            // The Core Brightness
+            const coreGrd = ctx.createRadialGradient(w/2, h/2, 10, w/2, h/2, 300);
+            coreGrd.addColorStop(0, 'rgba(255, 240, 200, 0.1)');
+            coreGrd.addColorStop(0.5, 'rgba(100, 80, 150, 0.05)');
+            coreGrd.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = coreGrd;
+            ctx.fillRect(0,0,w,h);
+
+            // Add Stars to texture
+            for(let i=0; i<2000; i++) {
+                const x = Math.random() * w;
+                const y = Math.random() * h;
+                // More stars near the center band
+                const prob = Math.random();
+                const band = Math.abs(y - h/2) / (h/2);
+                
+                if (prob > band) {
+                    ctx.fillStyle = `rgba(255,255,255, ${Math.random() * 0.8})`;
+                    ctx.fillRect(x,y, Math.random()*2, Math.random()*2);
+                }
+            }
+
+            return new THREE.CanvasTexture(canvas);
+        }
 
         function generateTexture(type, baseColorHex) {
             const canvas = document.createElement('canvas');
@@ -630,35 +856,29 @@
                 ctx.putImageData(imgData, 0, 0);
 
             } else if (type === 'moon' || type === 'mercury' || type === 'pluto' || type === 'eris') {
-                // Base colors
                 if(type === 'mercury') ctx.fillStyle = '#554433';
-                else if (type === 'pluto') ctx.fillStyle = '#C0A080'; // Light brownish
-                else if (type === 'eris') ctx.fillStyle = '#EEEEEE'; // Bright icy
-                else ctx.fillStyle = '#666666'; // Moon
+                else if (type === 'pluto') ctx.fillStyle = '#C0A080';
+                else if (type === 'eris') ctx.fillStyle = '#EEEEEE';
+                else ctx.fillStyle = '#666666';
                 
                 ctx.fillRect(0, 0, w, h);
                 
-                // Texture pass
                 for(let i=0; i<400; i++) {
                     const cx = Math.random() * w;
                     const cy = Math.random() * h;
                     const size = Math.random() * 8 + 1;
                     
-                    // Specifics
                     if (type === 'pluto') {
-                        // Patches of ice vs rock
                         ctx.beginPath();
                         ctx.arc(cx, cy, size * 3, 0, Math.PI*2);
                         ctx.fillStyle = Math.random() > 0.6 ? 'rgba(255,255,255,0.1)' : 'rgba(100,80,60,0.2)';
                         ctx.fill();
                     } else if (type === 'eris') {
-                        // Highly reflective subtle noise
                         ctx.beginPath();
                         ctx.arc(cx, cy, size * 2, 0, Math.PI*2);
                         ctx.fillStyle = 'rgba(255,255,255,0.3)';
                         ctx.fill();
                     } else {
-                        // Standard craters
                         ctx.beginPath();
                         ctx.arc(cx, cy, size, 0, Math.PI*2);
                         ctx.fillStyle = 'rgba(0,0,0,0.4)';
@@ -814,6 +1034,18 @@
             controls.target.set(0,0,0);
         }
 
+        window.toggleConstellations = function() {
+            const btn = document.getElementById('btn-constellations');
+            btn.classList.toggle('active');
+            if(constellationGroup) constellationGroup.visible = btn.classList.contains('active');
+        }
+
+        window.toggleMilkyWay = function() {
+            const btn = document.getElementById('btn-milkyway');
+            btn.classList.toggle('active');
+            if(milkyWaySphere) milkyWaySphere.visible = btn.classList.contains('active');
+        }
+
         function onMouseMove(event) {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -839,7 +1071,7 @@
         }
 
         function onMouseClick(event) {
-            if (event.target.closest('#detail-panel')) return;
+            if (event.target.closest('#detail-panel') || event.target.closest('#view-options')) return;
 
             raycaster.setFromCamera(mouse, camera);
             const planetMeshes = planets.map(p => p.mesh);
@@ -870,11 +1102,15 @@
         function animate() {
             requestAnimationFrame(animate);
 
+            // Rotate background slowly
+            if(milkyWaySphere) milkyWaySphere.rotation.y += 0.0001;
+            if(constellationGroup) constellationGroup.rotation.y += 0.0001;
+
             if (!isPaused) {
                 // Normal Orbit Animation
                 sun.rotation.y += 0.0005; 
                 if(asteroidBelt) asteroidBelt.rotation.y += 0.0001; 
-                if(kuiperBelt) kuiperBelt.rotation.y += 0.00005; // Very slow rotation for Kuiper belt
+                if(kuiperBelt) kuiperBelt.rotation.y += 0.00005; 
 
                 planets.forEach(p => {
                     p.angle += p.speed;

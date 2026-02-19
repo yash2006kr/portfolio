@@ -761,6 +761,14 @@ body {
   letter-spacing: 1px;
 }
 
+.stats-visual-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+  align-items: start;
+}
+
 .about-visual {
   display: flex;
   align-items: center;
@@ -1486,6 +1494,10 @@ body {
   }
 
   .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-visual-row {
     grid-template-columns: 1fr;
   }
 
